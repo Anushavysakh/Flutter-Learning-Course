@@ -1,7 +1,6 @@
-import 'package:firebase_auth/firebase_auth.dart';
-import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:notesapp_learning/constants/routes.dart';
+import 'package:notesapp_learning/services/auth/auth_service.dart';
 import 'package:notesapp_learning/views/login_page.dart';
 import 'package:notesapp_learning/views/notes_view.dart';
 import 'package:notesapp_learning/views/register.dart';
@@ -9,13 +8,14 @@ import 'package:notesapp_learning/views/verify_email.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  await Firebase.initializeApp();
+  await AuthService.firebase().initialize();
   runApp(MaterialApp(
-    home: MyHomePage(),
+    home: const MyHomePage(),
     routes: {
       loginRoute: (context) => const LoginView(),
       registerRoute: (context) => const RegisterView(),
       notesRoute:(context) => const NotesView(),
+      verifyEmailRoute: (context) => const VerifyEmailView(),
     },
     title: 'Flutter Demo',
     theme: ThemeData(
@@ -32,13 +32,13 @@ class MyHomePage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return FutureBuilder(
-      future: Firebase.initializeApp(),
+      future: AuthService.firebase().initialize(),
       builder: (context, snapshot) {
         switch (snapshot.connectionState) {
           case ConnectionState.done:
-            final user = FirebaseAuth.instance.currentUser;
+            final user = AuthService.firebase().currentUser;
             if (user != null) {
-              if (user.emailVerified) {
+              if (user.isEmailVerified) {
                 return const NotesView();
                // print('Email is verified');
               } else {
@@ -47,12 +47,7 @@ class MyHomePage extends StatelessWidget {
             } else {
               return const LoginView();
             }
-            return const Text('Done');
-          // if (user?.emailVerified ?? false) {
-          //   return const Text('Done');
-          // } else {
-          //   return const VerifyEmailView();
-          // }
+
           default:
             return const CircularProgressIndicator();
         }
